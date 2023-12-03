@@ -2,9 +2,12 @@
   "name": "Patreon Webtoon Viewer",
   "description": "Viewer for webtoon style contents in patreon",
   "version": "0.1",
-  "permissions": ["activeTab"],
-  "manifest_version": 2,
-  "browser_action": {
+  "permissions": ["activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "manifest_version": 3,
+  "action": {
     "default_title": "Webtoon Viewer",
     "default_popup": "popup.html"
   }
