@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'removeNavi') {
+  if (request.action === 'toWebtoonView') {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       var activeTab = tabs[0];
       console.log('tabs' + tabs);
@@ -10,11 +10,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       chrome.scripting.executeScript({
         target: { tabId: activeTab.id },
         // function: 대신 files: "dom.js"와 같이 파일로 뺄 수도 있다.
-        function: function () {
-          console.log("It's working");
-          document.querySelector('#main-app-navigation').style.display = 'none';
-        },
+        files: ['dom.js'],
       });
+    });
+  } else if (request.action === 'toPatreonView') {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.goBack(tabs[0].id);
     });
   }
 });
