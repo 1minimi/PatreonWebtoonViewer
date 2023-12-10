@@ -1,3 +1,5 @@
+const PAGE_NUM_SELECTOR = '.fbOLiA';
+
 run(); // 실행부
 
 function run() {
@@ -41,7 +43,11 @@ async function extractImageSources(outImageSources) {
     return false;
   }
 
-  const pageNumInfoTag = await getPageNum();
+  const pageNumInfoTag = await syncGetPageNumEle();
+
+  if (pageNumInfoTag === null) {
+    return false;
+  }
 
   const rtnStrArr = pageNumInfoTag.textContent
     .split('/')
@@ -74,16 +80,6 @@ function readImageSources(outImageSources, lastNum, btnNext) {
   }
 
   return true;
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function getPageNum() {
-  await sleep(100); // pageNum 받기위해 0.1초 대기
-
-  return document.querySelector('.fbOLiA');
 }
 
 function hideOtherPanels() {
@@ -120,4 +116,56 @@ function RenderWebtoonView(imageSources) {
   }
 
   document.body.appendChild(container);
+}
+
+// 비동기 함수: 특정 태그가 등장할 때까지 대기
+async function waitForElement() {
+  return new Promise((resolve) => {
+    const targetElement = document.querySelector(PAGE_NUM_SELECTOR);
+
+    // 태그가 이미 존재하는 경우 즉시 resolve
+    if (targetElement) {
+      resolve(targetElement);
+    } else {
+      // MutationObserver를 사용하여 태그 등장을 감지
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            const addedNode = mutation.addedNodes[0];
+
+            if (addedNode.querySelector(PAGE_NUM_SELECTOR)) {
+              observer.disconnect(); // 태그가 등장하면 observer 중단
+              resolve(addedNode);
+            }
+          }
+        });
+      });
+
+      // 태그가 등장할 때까지 관찰 시작
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  });
+}
+
+// 동기 코드: 비동기 함수 실행 및 5초 이내에 결과 기다림
+async function syncGetPageNumEle() {
+  console.log('동기 코드 시작');
+
+  try {
+    const result = await Promise.race([
+      waitForElement(),
+      new Promise((resolve) => setTimeout(() => resolve(null), 5000)),
+    ]);
+
+    if (result) {
+      console.log('태그가 등장했습니다:', result.textContent);
+      return result;
+    } else {
+      console.log('5초 이내에 태그가 등장하지 않았습니다.');
+    }
+  } catch (error) {
+    console.error('에러 발생:', error);
+  }
+
+  console.log('동기 코드 종료');
 }
