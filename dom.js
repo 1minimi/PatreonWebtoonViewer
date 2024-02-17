@@ -1,4 +1,5 @@
-const PAGE_NUM_SELECTOR = '.fbOLiA';
+const PAGE_NUM_SELECTOR = '.bZqPyT';
+let cursorTimeout; // for autoHideCursor
 
 run(); // 실행부
 
@@ -90,6 +91,19 @@ function RenderWebtoonView(imageSources) {
   document.body.style.overflow = 'auto';
   document.body.style.paddingRight = '0';
 
+  var style = document.createElement('style');
+
+  // 생성한 스타일에 CSS 코드 추가
+  style.textContent = `
+    /* Webkit 브라우저의 스크롤바를 숨김 */
+    ::-webkit-scrollbar {
+      width: 0; /* 너비를 0으로 설정하여 숨김 */
+    }
+  `;
+
+  // 문서의 head에 생성한 스타일 추가
+  document.head.appendChild(style);
+
   let container = document.createElement('div');
   container.setAttribute('id', 'root-container');
   container.style.display = 'flex';
@@ -116,6 +130,20 @@ function RenderWebtoonView(imageSources) {
   }
 
   document.body.appendChild(container);
+  setAutoHideCursor();
+}
+
+function setAutoHideCursor() {
+  document.addEventListener('mousemove', () => {
+    // 마우스가 움직이면 기존에 설정된 타이머를 클리어합니다.
+    clearTimeout(cursorTimeout);
+
+    // 3초 후에 마우스 커서를 숨깁니다.
+    document.body.style.cursor = 'default'; // 이 줄을 사용하면 기본 커서로 변경됩니다. 'none'을 사용하면 숨깁니다.
+    cursorTimeout = setTimeout(() => {
+      document.body.style.cursor = 'none';
+    }, 3000);
+  });
 }
 
 // 비동기 함수: 특정 태그가 등장할 때까지 대기
